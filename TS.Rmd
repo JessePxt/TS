@@ -9,6 +9,7 @@ output: html_document
 
 ```{r, include=F}
 rm(list=ls())
+install.packages("ggplot2")
 library(quantmod)
 library(fBasics)
 library(car)
