@@ -1,29 +1,101 @@
 ---
-title: "TS"
+title: "Series Temporais"
+author: "Jessé P. de Freitas"
+date: '`r format(Sys.Date(),"%d/%m/%Y")`'
 output: html_document
-date: "`r Sys.Date()`"
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+### Carregando o pacotes
+
+```{r, include=F}
+rm(list=ls())
+library(quantmod)
+library(fBasics)
+library(car)
+```
+```{r, eval=F}
+library(quantmod)
+library(fBasics)
+library(car)
 ```
 
-## R Markdown
+### Importando os dados da Hapvida, BOVESPA (HAPV3.SA)
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+```{r,include=FALSE}
+# Dados da Hapvida
+getSymbols("HAPV3.SA",from="2021-01-01",to="2022-12-31")  
+# Período específico, Janeiro/2021 à Dezembro/2022
+```
+```{r,eval=FALSE}
+# Dados da Hapvida
+getSymbols("HAPV3.SA",from="2021-01-01",to="2022-12-31")  
+# Período específico, Janeiro/2021 à Dezembro/2022
 ```
 
-## Including Plots
+### Visualizando a Série temporal dos dados da Hapvida, BOVESPA.
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r}
+# Definindo a Série temporal
+ibv.ts <- ts(data=HAPV3.SA$HAPV3.SA.Adjusted, frequency = 1) 
+# Visualizando a Série Temporal
+plot(ibv.ts, col="blue", lwd=2, ylab="ibv", xlab="")
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+### Retornos da série: retorno líquido simples e log-retorno.
+
+```{r}
+#retorno liquido simples
+Ribv.ts <- diff(ibv.ts)/lag(ibv.ts, k=-1)
+#log-retorno
+ribv.ts <- diff(log(ibv.ts))     
+```
+
+### Visualizando a Série do Retorno e Log-Retorno
+
+```{r}
+# Visualizando o Retorno Simples 
+plot(Ribv.ts, col="blue", lwd=2, ylab="Ribv", xlab="")
+# Visualizando o Log-Retorno Simples
+plot(ribv.ts, col="blue", lwd=2, ylab="ribv", xlab="")
+```
+
+### Construindo um gráfico Q-Q para a série do log-retorno e comente seu comportamento.
+
+
+```{r}
+# Histograma
+hist(ribv.ts, freq=FALSE, nclass=24, ylab="", xlab="", ylim=c(0,25), main="")
+# Estimação da densidade
+lines(density(ribv.ts, adjust=5), col="blue") 
+
+# Construindo o QQ Plot 
+qqnorm(ribv.ts, pch=19) 
+qqline(ribv.ts, col = "blue")
+# Plot alternativo com intervalo de confiança
+qqPlot(ribv.ts, envelope=0.95) 
+```
+
+### Analise descritiva
+
+```{r}
+# Estatísticas descritivas
+basicStats(ribv.ts) 
+```
+
+### Estatisticas e testes
+```{r}
+# Média
+mean(ribv.ts) 
+# Variância
+var(ribv.ts) 
+# Desvio-padrão
+stdev(ribv.ts) 
+```
+
+### Realize um teste de normalidade de Jarque-Bera para a série de log-retorno e comente seu resultado
+```{r}
+# Teste para média dos retornos = 0
+t.test(ribv.ts)  
+# teste de Normalidade de Jarque-Bera
+normalTest(ribv.ts,method='jb') 
+```
